@@ -1,0 +1,193 @@
+<!DOCTYPE html>  
+<html lang="en">  
+<head>  
+    <meta charset="UTF-8">  
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">  
+    <title>Results - Spreadsheet Matcher</title>  
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">  
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/colresizable/1.6.0/colResizable-1.6.min.css" rel="stylesheet">  
+    <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang&display=swap" rel="stylesheet">  
+    <style>  
+        body {  
+            background-color: #f8f9fa;  
+            color: #3c4a62;  
+            font-family: 'Gowun Batang', serif;  
+            padding-bottom: 80px; /* Adjust this value if needed */  
+        }  
+  
+        .navbar {  
+            background-color: #0069A7;  
+        }  
+  
+        .navbar-brand, .nav-link {  
+            color: #ffffff !important;  
+            font-weight: 500;  
+        }  
+  
+        .navbar-brand {  
+            font-size: 1.25rem;  
+        }  
+  
+        .container {  
+            background-color: #ffffff;  
+            padding: 20px;  
+            border-radius: 10px;  
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);  
+        }  
+  
+        h2 {  
+            color: #0069A7;  
+        }  
+  
+        .btn-primary {  
+            background-color: #3CB14A;  
+            border-color: #3CB14A;  
+        }  
+  
+        .btn-primary:hover {  
+            background-color: #2a8b35;  
+            border-color: #2a8b35;  
+        }  
+  
+        .btn-success {  
+            background-color: #0069A7;  
+            border-color: #0069A7;  
+        }  
+  
+        .btn-success:hover {  
+            background-color: #005b8c;  
+            border-color: #005b8c;  
+        }  
+  
+        .table-container {  
+            overflow-x: auto;  
+            margin-top: 20px;  
+        }  
+  
+        table {  
+            background-color: #ffffff;  
+            border-radius: 10px;  
+            overflow: hidden;  
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);  
+            min-width: 1000px; /* Adjust according to your needs */  
+        }  
+  
+        th, td {  
+            text-align: center;  
+            vertical-align: middle;  
+        }  
+  
+        th {  
+            background-color: #f57f29;  
+            color: #ffffff;  
+        }  
+  
+        td {  
+            background-color: #f8f9fa;  
+        }  
+  
+        footer {  
+            background-color: #f8f9fa;  
+            color: #0069A7;  
+            text-align: center;  
+            padding: 10px 0;  
+            position: fixed;  
+            bottom: 0;  
+            width: 100%;  
+            border-top: 1px solid #0069A7;  
+        }  
+    </style>  
+</head>  
+<body>  
+    <nav class="navbar navbar-expand-lg navbar-light">  
+        <div class="container-fluid">  
+            <a class="navbar-brand" href="#">Verterim GRC Mapper</a>  
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">  
+                <span class="navbar-toggler-icon"></span>  
+            </button>  
+            <div class="collapse navbar-collapse" id="navbarNav">  
+                <ul class="navbar-nav ml-auto">  
+                    <li class="nav-item">  
+                        <a class="nav-link" href="#">Home</a>  
+                    </li>  
+                </ul>  
+            </div>  
+        </div>  
+    </nav>  
+  
+    <div class="container mt-5">  
+        <div class="row">  
+            <div class="col-md-12">  
+                <h2 class="text-center">Matching Results</h2>  
+                <div class="mt-4 text-center">  
+                    <a href="{{ url_for('index') }}" class="btn btn-primary">Go Home</a>  
+                    <a href="{{ url_for('download_file', filename=filename) }}" class="btn btn-success">Download Results</a>  
+                </div>  
+                <div class="table-container">  
+                    <h4>Matched Entries</h4>  
+                    <table class="table table-bordered resizable-columns">  
+                        <thead>  
+                            <tr>  
+                                {% for col in columns %}  
+                                    <th>{{ col }}</th>  
+                                {% endfor %}  
+                            </tr>  
+                        </thead>  
+                        <tbody>  
+                            {% for match in matched %}  
+                                <tr>  
+                                    {% for col in columns %}  
+                                        <td>{{ match[col] }}</td>  
+                                    {% endfor %}  
+                                </tr>  
+                            {% endfor %}  
+                        </tbody>  
+                    </table>  
+                </div>  
+                <div class="table-container">  
+                    <h4>Not Matched/Low Probability Entries</h4>  
+                    <table class="table table-bordered resizable-columns">  
+                        <thead>  
+                            <tr>  
+                                {% for col in columns %}  
+                                    <th>{{ col }}</th>  
+                                {% endfor %}  
+                            </tr>  
+                        </thead>  
+                        <tbody>  
+                            {% for match in not_matched %}  
+                                <tr>  
+                                    {% for col in columns %}  
+                                        <td>{{ match[col] }}</td>  
+                                    {% endfor %}  
+                                </tr>  
+                            {% endfor %}  
+                        </tbody>  
+                    </table>  
+                </div>  
+            </div>  
+        </div>  
+    </div>  
+  
+    <footer>  
+        <div class="container">  
+            <span>©2024 Verterim, Inc. All rights reserved.</span>  
+        </div>  
+    </footer>  
+  
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>  
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>  
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/colresizable/1.6.0/colResizable-1.6.min.js"></script>  
+    <script>  
+        $(document).ready(function() {  
+            $('.resizable-columns').colResizable({  
+                liveDrag: true,  
+                gripInnerHtml: "<div class='grip'></div>",   
+                draggingClass: "dragging",  
+                resizeMode: 'overflow'  
+            });  
+        });  
+    </script>  
+</body>  
+</html>  

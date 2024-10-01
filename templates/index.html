@@ -1,0 +1,259 @@
+<!DOCTYPE html>  
+<html lang="en">  
+<head>  
+    <meta charset="UTF-8">  
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">  
+    <title>Spreadsheet Matcher</title>  
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">  
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/colresizable/1.6.0/colResizable-1.6.min.css" rel="stylesheet">  
+    <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang&display=swap" rel="stylesheet">  
+    <style>  
+        body {  
+            background-color: #f8f9fa;  
+            color: #3c4a62;  
+            font-family: 'Gowun Batang', serif;  
+            padding-bottom: 80px; /* Adjust this value if needed */  
+        }  
+  
+        .navbar {  
+            background-color: #0069A7;  
+        }  
+  
+        .navbar-brand, .nav-link {  
+            color: #ffffff !important;  
+            font-weight: 500;  
+        }  
+  
+        .navbar-brand {  
+            font-size: 1.25rem;  
+        }  
+  
+        .container {  
+            background-color: #ffffff;  
+            padding: 20px;  
+            border-radius: 10px;  
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);  
+        }  
+  
+        h2 {  
+            color: #0069A7;  
+        }  
+  
+        .form-group {  
+            position: relative;  
+            border: 2px dashed #3CB14A;  
+            padding: 20px;  
+            text-align: center;  
+            border-radius: 10px;  
+            cursor: pointer;  
+            transition: background-color 0.3s ease;  
+        }  
+  
+        .form-group input[type="file"] {  
+            opacity: 0;  
+            position: absolute;  
+            left: 0;  
+            top: 0;  
+            height: 100%;  
+            width: 100%;  
+            cursor: pointer;  
+        }  
+  
+        .form-group.dragover {  
+            background-color: rgba(60, 74, 98, 0.1);  
+        }  
+  
+        .form-group .file-name {  
+            margin-top: 10px;  
+            font-weight: bold;  
+            color: #3c4a62;  
+        }  
+  
+        .btn-primary {  
+            background-color: #3CB14A;  
+            border-color: #3CB14A;  
+        }  
+  
+        .btn-primary:hover {  
+            background-color: #2a8b35;  
+            border-color: #2a8b35;  
+        }  
+  
+        .spinner-overlay {  
+            position: fixed;  
+            top: 0;  
+            left: 0;  
+            width: 100%;  
+            height: 100%;  
+            background: rgba(255, 255, 255, 0.8);  
+            display: flex;  
+            align-items: center;  
+            justify-content: center;  
+            z-index: 9999;  
+            display: none;  
+        }  
+  
+        .checkbox-container {  
+            display: flex;  
+            flex-wrap: wrap;  
+        }  
+  
+        .checkbox-container .checkbox-item {  
+            flex: 1 1 30%;  
+            padding: 5px;  
+        }  
+  
+        footer {  
+            background-color: #f8f9fa;  
+            color: #0069A7;  
+            text-align: center;  
+            padding: 10px 0;  
+            position: fixed;  
+            bottom: 0;  
+            width: 100%;  
+            border-top: 1px solid #0069A7;  
+        }  
+    </style>  
+</head>  
+<body>  
+    <nav class="navbar navbar-expand-lg navbar-light">  
+        <div class="container-fluid">  
+            <a class="navbar-brand" href="#">Verterim GRC Mapper</a>  
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">  
+                <span class="navbar-toggler-icon"></span>  
+            </button>  
+            <div class="collapse navbar-collapse" id="navbarNav">  
+                <ul class="navbar-nav ml-auto">  
+                    <li class="nav-item">  
+                        <a class="nav-link" href="#">Home</a>  
+                    </li>  
+                </ul>  
+            </div>  
+        </div>  
+    </nav>  
+  
+    <div class="container mt-5">  
+        <div class="row">  
+            <div class="col-md-8 offset-md-2">  
+                <h2 class="text-center">Choose Spreadsheets </h2>  
+                {% with messages = get_flashed_messages(with_categories=true) %}  
+                    {% if messages %}  
+                        <div class="mt-4">  
+                            {% for category, message in messages %}  
+                                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">  
+                                    {{ message }}  
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">  
+                                        <span aria-hidden="true">&times;</span>  
+                                    </button>  
+                                </div>  
+                            {% endfor %}  
+                        </div>  
+                    {% endif %}  
+                {% endwith %}  
+                <form id="uploadForm" enctype="multipart/form-data" class="mt-4">  
+                    <div class="form-group" id="file1-group">  
+                        <label for="file1">Upload First Spreadsheet</label>  
+                        <input type="file" id="file1" name="file1" accept=".xlsx,.xls" required onchange="updateFileName(this)">  
+                        <span class="file-name" id="file1-name"></span>  
+                    </div>  
+                    <div class="form-group" id="file2-group">  
+                        <label for="file2">Upload Second Spreadsheet</label>  
+                        <input type="file" id="file2" name="file2" accept=".xlsx,.xls" required onchange="updateFileName(this)">  
+                        <span class="file-name" id="file2-name"></span>  
+                    </div>  
+                    <button type="button" class="btn btn-primary btn-block" onclick="uploadFiles()">Upload Files</button>  
+                </form>  
+                <form id="matchForm" action="{{ url_for('match') }}" method="post" enctype="multipart/form-data" class="mt-4" style="display:none;" onsubmit="showSpinner()">  
+                    <input type="hidden" name="df1" id="df1">  
+                    <input type="hidden" name="df2" id="df2">  
+                    <div class="form-group">  
+                        <label for="columns1">Columns to Evaluate from First Spreadsheet</label>  
+                        <div id="columns1" class="checkbox-container"></div>  
+                    </div>  
+                    <div class="form-group">  
+                        <label for="columns2">Columns to Evaluate from Second Spreadsheet</label>  
+                        <div id="columns2" class="checkbox-container"></div>  
+                    </div>  
+                    <button type="submit" class="btn btn-primary btn-block">Match</button>  
+                </form>  
+            </div>  
+        </div>  
+    </div>  
+  
+    <!-- Spinner Overlay -->  
+    <div class="spinner-overlay">  
+        <div class="spinner-border text-primary" role="status">  
+            <span class="sr-only">Processing...</span>  
+        </div>  
+    </div>  
+  
+    <footer>  
+        <div class="container">  
+            <span>©2024 Verterim, Inc. All rights reserved.</span>  
+        </div>  
+    </footer>  
+  
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>  
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>  
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/colresizable/1.6.0/colResizable-1.6.min.js"></script>  
+    <script>  
+        function uploadFiles() {  
+            var formData = new FormData($('#uploadForm')[0]);  
+            $.ajax({  
+                url: "{{ url_for('upload') }}",  
+                type: 'POST',  
+                data: formData,  
+                processData: false,  
+                contentType: false,  
+                success: function(response) {  
+                    $('#columns1').empty();  
+                    $('#columns2').empty();  
+                    response.columns1.forEach(function(column) {  
+                        $('#columns1').append('<div class="checkbox-item"><input type="checkbox" name="columns1" value="' + column + '"> ' + column + '</div>');  
+                    });  
+                    response.columns2.forEach(function(column) {  
+                        $('#columns2').append('<div class="checkbox-item"><input type="checkbox" name="columns2" value="' + column + '"> ' + column + '</div>');  
+                    });  
+                    $('#df1').val(response.df1);  
+                    $('#df2').val(response.df2);  
+                    $('#matchForm').show();  
+                },  
+                error: function(response) {  
+                    alert('Error uploading files: ' + response.responseJSON.error);  
+                }  
+            });  
+        }  
+  
+        function showSpinner() {  
+            document.querySelector('.spinner-overlay').style.display = 'flex';  
+        }  
+  
+        function updateFileName(input) {  
+            var fileName = input.files[0].name;  
+            var fileLabel = input.nextElementSibling;  
+            fileLabel.textContent = fileName;  
+        }  
+  
+        // Drag and Drop functionality  
+        document.querySelectorAll('.form-group').forEach(group => {  
+            group.addEventListener('dragover', (e) => {  
+                e.preventDefault();  
+                group.classList.add('dragover');  
+            });  
+  
+            group.addEventListener('dragleave', () => {  
+                group.classList.remove('dragover');  
+            });  
+  
+            group.addEventListener('drop', (e) => {  
+                e.preventDefault();  
+                group.classList.remove('dragover');  
+                const input = group.querySelector('input[type="file"]');  
+                input.files = e.dataTransfer.files;  
+                updateFileName(input);  
+            });  
+        });  
+    </script>  
+</body>  
+</html>  
